@@ -33,7 +33,7 @@ if not os.path.exists(STATS_FILE):
     with open(STATS_FILE, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([
-            'session_id', 'timestamp', 'total', 'know', 'dontKnow', 'percent', 'errors'
+            'session_id', 'user_id','timestamp', 'total', 'know', 'dontKnow', 'percent', 'errors'
         ])
 
 @flask_app.route('/api/stats', methods=['POST', 'OPTIONS'])
