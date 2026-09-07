@@ -61,7 +61,8 @@ def receive_stats():
             data['know'],
             data['dontKnow'],
             data['percent'],
-            '; '.join(data.get('errors', []))
+            '; '.join(data.get('errors', [])),
+            data.get('user_id', '')
         ])
 
     response = jsonify({'status': 'ok'})
