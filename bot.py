@@ -3,7 +3,7 @@ import logging
 import threading
 import time
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import json
@@ -109,7 +109,16 @@ def self_pinger():
             logging.warning(f"Self-ping не удался: {e}")
         time.sleep(840)
 
-
+@flask_app.route('/download_stats')
+def download_stats():
+    if not os.path.exists(STATS_FILE):
+        return "Файл статистики пока не создан.", 404
+    return send_file(
+        STATS_FILE,
+        as_attachment=True,
+        download_name=f'stats_{datetime.now().strftime("%Y%m%d")}.csv',
+        mimetype='text/csv'
+    )
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not os.path.exists(STATS_FILE):
