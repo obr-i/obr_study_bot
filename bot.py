@@ -36,18 +36,22 @@ if not os.path.exists(STATS_FILE):
             'session_id', 'timestamp', 'total', 'know', 'dontKnow', 'percent', 'errors'
         ])
 
-@app.route('/api/stats', methods=['POST'])
+@flask_app.route('/api/stats', methods=['POST', 'OPTIONS'])
 def receive_stats():
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data'}), 400
 
-    # Валидация
     required = ['session_id', 'timestamp', 'total', 'know', 'dontKnow', 'percent']
     if not all(k in data for k in required):
         return jsonify({'error': 'Missing fields'}), 400
 
-    # Сохраняем в CSV
     with open(STATS_FILE, 'a', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([
@@ -60,7 +64,9 @@ def receive_stats():
             '; '.join(data.get('errors', []))
         ])
 
-    return jsonify({'status': 'ok'}), 200
+    response = jsonify({'status': 'ok'})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response, 200
 
 
 #######
