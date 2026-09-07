@@ -160,9 +160,9 @@ def main():
 
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(info_callback, pattern="info"))  # исправлено
+    application.add_handler(CallbackQueryHandler(info_callback, pattern="info"))
+    application.add_handler(CommandHandler("stats", stats_command))   # <<< перенесите сюда
     application.run_polling()
-    application.add_handler(CommandHandler("stats", stats_command))
 
 if __name__ == "__main__":
     main()
