@@ -12,6 +12,16 @@ from datetime import datetime
 
 # Flask-приложение для ответа на пинги
 flask_app = Flask(__name__)
+
+TOKEN = os.environ.get("BOT_TOKEN")
+
+APP_SLOVARNIK = "https://obr-i.github.io/vocab/"
+APP_ORFOEPIA = "https://obr-i.github.io/orthoepy_cards/"
+APP_O_YO = "https://obr-i.github.io/o_yo_cards/"
+APP_EXAM_9 = "https://obr-i.github.io/exam_ru_9/"
+
+logging.basicConfig(level=logging.INFO)
+
 ########
 
 
@@ -54,14 +64,6 @@ def receive_stats():
 
 
 #######
-TOKEN = os.environ.get("BOT_TOKEN")
-
-APP_SLOVARNIK = "https://obr-i.github.io/vocab/"
-APP_ORFOEPIA = "https://obr-i.github.io/orthoepy_cards/"
-APP_O_YO = "https://obr-i.github.io/o_yo_cards/"
-APP_EXAM_9 = "https://obr-i.github.io/exam_ru_9/"
-
-logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
