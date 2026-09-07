@@ -56,14 +56,14 @@ def receive_stats():
         writer = csv.writer(f)
         writer.writerow([
             data['session_id'],
-            data['timestamp'],
-            data['total'],
-            data['know'],
-            data['dontKnow'],
-            data['percent'],
-            '; '.join(data.get('errors', [])),
-            data.get('user_id', '')
-        ])
+    data.get('user_id', ''),
+    data['timestamp'],
+    data['total'],
+    data['know'],
+    data['dontKnow'],
+    data['percent'],
+    '; '.join(data.get('errors', []))
+])
 
     response = jsonify({'status': 'ok'})
     response.headers.add('Access-Control-Allow-Origin', '*')
