@@ -12,10 +12,10 @@ flask_app = Flask(__name__)
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-APP_SLOVARNIK = "https://obr-i.github.io/vocab/"
-APP_ORFOEPIA = "https://obr-i.github.io/orthoepy_cards/"
-APP_O_YO = "https://obr-i.github.io/o_yo_cards/"
-APP_EXAM_9 = "https://obr-i.github.io/exam_ru_9/"
+APP_SLOVARNIK = "https://obr-i.github.io/obr_study_bot/vocab_cards.html/"
+APP_ORFOEPIA = "https://obr-i.github.io/obr_study_bot/orthoepy_cards.html/"
+APP_O_YO = "https://obr-i.github.io/obr_study_bot/o-yo_cards.html/"
+APP_EXAM_9 = "https://obr-i.github.io/obr_study_bot/9_ege_rus.html/"
 
 logging.basicConfig(level=logging.INFO)
 
