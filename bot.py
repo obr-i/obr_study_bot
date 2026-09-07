@@ -3,13 +3,57 @@ import logging
 import threading
 import time
 import requests
-from flask import Flask
+from flask import Flask, request, jsonify
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import json
+import csv
+from datetime import datetime
 
 # Flask-приложение для ответа на пинги
 flask_app = Flask(__name__)
+########
 
+
+# Путь к файлу статистики
+STATS_FILE = 'stats.csv'
+
+# Создаём файл с заголовками, если его нет
+if not os.path.exists(STATS_FILE):
+    with open(STATS_FILE, 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            'session_id', 'timestamp', 'total', 'know', 'dontKnow', 'percent', 'errors'
+        ])
+
+@app.route('/api/stats', methods=['POST'])
+def receive_stats():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data'}), 400
+
+    # Валидация
+    required = ['session_id', 'timestamp', 'total', 'know', 'dontKnow', 'percent']
+    if not all(k in data for k in required):
+        return jsonify({'error': 'Missing fields'}), 400
+
+    # Сохраняем в CSV
+    with open(STATS_FILE, 'a', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            data['session_id'],
+            data['timestamp'],
+            data['total'],
+            data['know'],
+            data['dontKnow'],
+            data['percent'],
+            '; '.join(data.get('errors', []))
+        ])
+
+    return jsonify({'status': 'ok'}), 200
+
+
+#######
 TOKEN = os.environ.get("BOT_TOKEN")
 
 APP_SLOVARNIK = "https://obr-i.github.io/vocab/"
@@ -57,6 +101,50 @@ def self_pinger():
             logging.warning(f"Self-ping не удался: {e}")
         time.sleep(840)
 
+
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not os.path.exists(STATS_FILE):
+        await update.message.reply_text("Статистики пока нет.")
+        return
+
+    # Читаем CSV
+    rows = []
+    with open(STATS_FILE, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    if not rows:
+        await update.message.reply_text("Нет записей.")
+        return
+
+    total_sessions = len(rows)
+    total_words = sum(int(r['total']) for r in rows)
+    total_know = sum(int(r['know']) for r in rows)
+    avg_percent = sum(int(r['percent']) for r in rows) / total_sessions if total_sessions else 0
+
+    # Топ-5 ошибок
+    error_counts = {}
+    for r in rows:
+        errors = r.get('errors', '').split('; ')
+        for e in errors:
+            if e:
+                error_counts[e] = error_counts.get(e, 0) + 1
+    top_errors = sorted(error_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_errors_text = '\n'.join([f"• {word} — {count} раз" for word, count in top_errors]) if top_errors else "Нет ошибок"
+
+    message = (
+        f"📊 **Общая статистика**\n"
+        f"Сессий: {total_sessions}\n"
+        f"Всего слов: {total_words}\n"
+        f"Правильных ответов: {total_know}\n"
+        f"Средняя успеваемость: {avg_percent:.1f}%\n\n"
+        f"**Частые ошибки:**\n{top_errors_text}"
+    )
+    await update.message.reply_text(message, parse_mode='Markdown')
+
+
+
 def main():
     pinger_thread = threading.Thread(target=self_pinger, daemon=True)
     pinger_thread.start()
@@ -72,6 +160,8 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(info_callback, pattern="info"))  # исправлено
     application.run_polling()
+    application.add_handler(CommandHandler("stats", stats_command))
 
 if __name__ == "__main__":
     main()
+
